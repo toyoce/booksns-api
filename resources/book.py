@@ -68,3 +68,31 @@ class HighlyRatedBookList(Resource):
             {"isbn": br.isbn, "img": br.img, "star": br.star} for br in bookrecords
         ]
         return {"bookrecords": bookrecords}, 200
+
+
+class MostReviewedBookList(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("topn", type=int, default=6)
+
+    def get(self):
+        topn = MostReviewedBookList.parser.parse_args()["topn"]
+
+        aggregated = (
+            db.session.query(
+                BookrecordModel.isbn, db.func.count().label("reviewCount")
+            )
+            .group_by(BookrecordModel.isbn)
+            .subquery("aggregated")
+        )
+        bookrecords = (
+            db.session.query(aggregated, BookModel.img)
+            .filter(aggregated.c.isbn == BookModel.isbn)
+            .order_by(db.desc(aggregated.c.reviewCount))
+            .limit(topn)
+            .all()
+        )
+
+        bookrecords = [
+            {"isbn": br.isbn, "img": br.img, "reviewCount": br.reviewCount} for br in bookrecords
+        ]
+        return {"bookrecords": bookrecords}, 200

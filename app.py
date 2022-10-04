@@ -4,7 +4,7 @@ from flask_restful import Api
 
 from blocklist import BLOCKLIST
 from db import db
-from resources.book import Book, HighlyRatedBookList
+from resources.book import Book, HighlyRatedBookList, MostReviewedBookList
 from resources.user import TokenRefresh, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
@@ -80,6 +80,7 @@ def revoked_token_callback(jwt_header, jwt_payload):
 
 api.add_resource(Book, "/books/<string:isbn>")
 api.add_resource(HighlyRatedBookList, "/highly-rated-books")
+api.add_resource(MostReviewedBookList, "/most-reviewed-books")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
