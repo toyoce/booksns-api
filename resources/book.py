@@ -12,7 +12,7 @@ class Book(Resource):
     parser.add_argument("img")
 
     def get(self, isbn):
-        aggregated = (
+        agg = (
             db.session.query(
                 BookrecordModel.isbn,
                 db.func.avg(BookrecordModel.star).label("star"),
@@ -20,7 +20,7 @@ class Book(Resource):
             )
             .filter(BookrecordModel.isbn == isbn)
             .group_by(BookrecordModel.isbn)
-            .subquery("aggregated")
+            .subquery()
         )
         book = (
             db.session.query(
@@ -29,10 +29,11 @@ class Book(Resource):
                 BookModel.author,
                 BookModel.description,
                 BookModel.img,
-                aggregated.c.star,
-                aggregated.c.reviewCount,
+                agg.c.star,
+                agg.c.reviewCount,
             )
-            .filter(BookModel.isbn == aggregated.c.isbn)
+            .outerjoin(agg, BookModel.isbn == agg.c.isbn)
+            .filter(BookModel.isbn == isbn)
             .first()
         )
 
@@ -43,8 +44,8 @@ class Book(Resource):
                 "author": book.author,
                 "description": book.description,
                 "img": book.img,
-                "star": book.star,
-                "reviewCount": book.reviewCount,
+                "star": book.star if book.star else 0,
+                "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
             return book, 200
 
