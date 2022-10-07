@@ -83,25 +83,23 @@ class HighlyRatedBookList(Resource):
     def get(self):
         topn = HighlyRatedBookList.parser.parse_args()["topn"]
 
-        aggregated = (
+        agg = (
             db.session.query(
                 BookrecordModel.isbn, db.func.avg(BookrecordModel.star).label("star")
             )
             .group_by(BookrecordModel.isbn)
-            .subquery("aggregated")
+            .subquery()
         )
-        bookrecords = (
-            db.session.query(aggregated, BookModel.img)
-            .filter(aggregated.c.isbn == BookModel.isbn)
-            .order_by(db.desc(aggregated.c.star))
+        books = (
+            db.session.query(agg, BookModel.img)
+            .filter(agg.c.isbn == BookModel.isbn)
+            .order_by(db.desc(agg.c.star))
             .limit(topn)
             .all()
         )
 
-        bookrecords = [
-            {"isbn": br.isbn, "img": br.img, "star": br.star} for br in bookrecords
-        ]
-        return {"bookrecords": bookrecords}, 200
+        books = [{"isbn": b.isbn, "img": b.img, "star": b.star} for b in books]
+        return {"books": books}, 200
 
 
 class MostReviewedBookList(Resource):
@@ -111,21 +109,20 @@ class MostReviewedBookList(Resource):
     def get(self):
         topn = MostReviewedBookList.parser.parse_args()["topn"]
 
-        aggregated = (
+        agg = (
             db.session.query(BookrecordModel.isbn, db.func.count().label("reviewCount"))
             .group_by(BookrecordModel.isbn)
-            .subquery("aggregated")
+            .subquery()
         )
-        bookrecords = (
-            db.session.query(aggregated, BookModel.img)
-            .filter(aggregated.c.isbn == BookModel.isbn)
-            .order_by(db.desc(aggregated.c.reviewCount))
+        books = (
+            db.session.query(agg, BookModel.img)
+            .filter(agg.c.isbn == BookModel.isbn)
+            .order_by(db.desc(agg.c.reviewCount))
             .limit(topn)
             .all()
         )
 
-        bookrecords = [
-            {"isbn": br.isbn, "img": br.img, "reviewCount": br.reviewCount}
-            for br in bookrecords
+        books = [
+            {"isbn": b.isbn, "img": b.img, "reviewCount": b.reviewCount} for b in books
         ]
-        return {"bookrecords": bookrecords}, 200
+        return {"books": books}, 200
