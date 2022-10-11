@@ -5,13 +5,18 @@ from models.bookrecord import BookrecordModel
 
 
 class Book(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("title", required=True)
-    parser.add_argument("author")
-    parser.add_argument("description")
-    parser.add_argument("img")
+    parser_get = reqparse.RequestParser()
+    parser_get.add_argument("withRecords", type=int, default=0)
+
+    parser_put = reqparse.RequestParser()
+    parser_put.add_argument("title", required=True)
+    parser_put.add_argument("author")
+    parser_put.add_argument("description")
+    parser_put.add_argument("img")
 
     def get(self, isbn):
+        withRecords = Book.parser_get.parse_args()["withRecords"]
+
         agg = (
             db.session.query(
                 BookrecordModel.isbn,
@@ -47,6 +52,13 @@ class Book(Resource):
                 "star": book.star if book.star else 0,
                 "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
+
+            if withRecords:
+                bookrecords = (
+                    db.session.query(BookrecordModel).filter(BookrecordModel.isbn == isbn).all()
+                )
+                book["bookrecords"] = [br.json() for br in bookrecords]
+
             return book, 200
 
         return {"message": "Book not found."}, 404
@@ -59,7 +71,7 @@ class Book(Resource):
         return {"message": "Book not found."}, 404
 
     def put(self, isbn):
-        data = Book.parser.parse_args()
+        data = Book.parser_put.parse_args()
 
         book = BookModel.find_by_isbn(isbn)
 
