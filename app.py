@@ -6,13 +6,13 @@ from blocklist import BLOCKLIST
 from db import db
 from resources.book import Book, HighlyRatedBookList, MostReviewedBookList
 from resources.bookrecord import BookrecordListPerBook
-from resources.user import TokenRefresh, UserLogin, UserLogout, UserRegister
+from resources.user import TokenRefresh, User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
-app.secret_key = "some_secret_key" # あとで変える
+app.secret_key = "some_secret_key"  # あとで変える
 api = Api(app)
 
 
@@ -26,9 +26,7 @@ jwt = JWTManager(app)
 
 @jwt.token_in_blocklist_loader
 def check_if_token_in_blocklist(jwt_header, jwt_payload):
-    return (
-        jwt_payload["jti"] in BLOCKLIST
-    )
+    return jwt_payload["jti"] in BLOCKLIST
 
 
 @jwt.expired_token_loader
@@ -83,6 +81,7 @@ api.add_resource(Book, "/books/<string:isbn>")
 api.add_resource(HighlyRatedBookList, "/highly-rated-books")
 api.add_resource(MostReviewedBookList, "/most-reviewed-books")
 api.add_resource(BookrecordListPerBook, "/bookrecords/<string:isbn>")
+api.add_resource(User, "/users/<string:user_id>")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
