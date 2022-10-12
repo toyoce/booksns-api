@@ -55,7 +55,9 @@ class Book(Resource):
 
             if withRecords:
                 bookrecords = (
-                    db.session.query(BookrecordModel).filter(BookrecordModel.isbn == isbn).all()
+                    db.session.query(BookrecordModel)
+                    .filter(BookrecordModel.isbn == isbn)
+                    .all()
                 )
                 book["bookrecords"] = [br.json() for br in bookrecords]
 

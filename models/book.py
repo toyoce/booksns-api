@@ -23,7 +23,7 @@ class BookModel(db.Model):
             "title": self.title,
             "author": self.author,
             "description": self.description,
-            "img": self.img
+            "img": self.img,
         }
 
     @classmethod

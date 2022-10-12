@@ -5,7 +5,7 @@ class BookrecordModel(db.Model):
     __tablename__ = "bookrecords"
 
     isbn = db.Column(db.String(13), db.ForeignKey("books.isbn"), primary_key=True)
-    user_id = db.Column(db.String(20), primary_key=True)
+    user_id = db.Column(db.String(20), db.ForeignKey("users.user_id"), primary_key=True)
     star = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(100))
 
@@ -20,7 +20,7 @@ class BookrecordModel(db.Model):
             "isbn": self.isbn,
             "user_id": self.user_id,
             "star": self.star,
-            "comment": self.comment
+            "comment": self.comment,
         }
 
     @classmethod

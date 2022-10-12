@@ -69,7 +69,10 @@ class UserRegister(Resource):
         except:
             return {"message": "An error occurred saving the user to the database"}, 500
 
-        return {"message": "User created successfully."}, 201
+        access_token = create_access_token(identity=user.user_id, fresh=True)
+        refresh_token = create_refresh_token(user.user_id)
+
+        return {"access_token": access_token, "refresh_token": refresh_token}, 201
 
 
 class UserLogin(Resource):
