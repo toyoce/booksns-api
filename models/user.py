@@ -4,24 +4,16 @@ from db import db
 class UserModel(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(80))
+    user_id = db.Column(db.String(20), primary_key=True)
+    password = db.Column(db.String(102), nullable=False)
 
-    def __init__(self, username, password):
-        self.username = username
+    def __init__(self, user_id, password):
+        self.user_id = user_id
         self.password = password
 
-    def json(self):
-        return {"id": self.id, "username": self.username}
-
     @classmethod
-    def find_by_username(cls, username):
-        return cls.query.filter_by(username=username).first()
-
-    @classmethod
-    def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
+    def find_by_user_id(cls, user_id):
+        return cls.query.filter_by(user_id=user_id).first()
 
     def save_to_db(self):
         db.session.add(self)

@@ -1,5 +1,3 @@
-from hmac import compare_digest
-
 from blocklist import BLOCKLIST
 from db import db
 from flask_jwt_extended import (
@@ -13,10 +11,7 @@ from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookrecord import BookrecordModel
 from models.user import UserModel
-
-_user_parser = reqparse.RequestParser()
-_user_parser.add_argument("username", required=True)
-_user_parser.add_argument("password", required=True)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class User(Resource):
@@ -58,27 +53,38 @@ class User(Resource):
 
 
 class UserRegister(Resource):
-    def post(self):
-        data = _user_parser.parse_args()
+    parser = reqparse.RequestParser()
+    parser.add_argument("user_id", required=True)
+    parser.add_argument("password", required=True)
 
-        if UserModel.find_by_username(data["username"]):
+    def post(self):
+        data = UserRegister.parser.parse_args()
+
+        if UserModel.find_by_user_id(data["user_id"]):
             return {"message": "A user with that username already exists."}, 400
 
-        user = UserModel(**data)
-        user.save_to_db()
+        try:
+            user = UserModel(data["user_id"], generate_password_hash(data["password"]))
+            user.save_to_db()
+        except:
+            return {"message": "An error occurred saving the user to the database"}, 500
 
         return {"message": "User created successfully."}, 201
 
 
 class UserLogin(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("user_id", required=True)
+    parser.add_argument("password", required=True)
+
     def post(self):
-        data = _user_parser.parse_args()
+        data = UserLogin.parser.parse_args()
 
-        user = UserModel.find_by_username(data["username"])
+        user = UserModel.find_by_user_id(data["user_id"])
 
-        if user and compare_digest(user.password, data["password"]):
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
+        if user and check_password_hash(user.password, data["password"]):
+            access_token = create_access_token(identity=user.user_id, fresh=True)
+            refresh_token = create_refresh_token(user.user_id)
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
         return {"message": "Invalid credentials!"}, 401
