@@ -1,18 +1,32 @@
+from datetime import datetime, timedelta, timezone
+
 from flask import Flask, jsonify
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    set_access_cookies,
+)
 from flask_restful import Api
 
 from blocklist import BLOCKLIST
 from db import db
 from resources.book import Book, HighlyRatedBookList, MostReviewedBookList
 from resources.bookrecord import BookrecordListPerBook
-from resources.user import TokenRefresh, User, UserLogin, UserLogout, UserRegister
+from resources.user import User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
-app.secret_key = "some_secret_key"  # あとで変える
+
+app.config["JWT_COOKIE_SECURE"] = False  # あとでTrueに変える
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_SECRET_KEY"] = "some_secret_key"  # あとで変える
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
 api = Api(app)
 
 
@@ -22,6 +36,20 @@ def create_tables():
 
 
 jwt = JWTManager(app)
+
+
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            set_access_cookies(response, access_token)
+        return response
+    except (RuntimeError, KeyError):
+        return response
 
 
 @jwt.token_in_blocklist_loader
@@ -57,16 +85,6 @@ def missing_token_callback(error):
     )
 
 
-@jwt.needs_fresh_token_loader
-def token_not_fresh_callback(jwt_header, jwt_payload):
-    return (
-        jsonify(
-            {"description": "The token is not fresh.", "error": "fresh_token_required"}
-        ),
-        401,
-    )
-
-
 @jwt.revoked_token_loader
 def revoked_token_callback(jwt_header, jwt_payload):
     return (
@@ -84,7 +102,6 @@ api.add_resource(BookrecordListPerBook, "/bookrecords/<string:isbn>")
 api.add_resource(User, "/users/<string:user_id>")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
-api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserLogout, "/logout")
 
 db.init_app(app)

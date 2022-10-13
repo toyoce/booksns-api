@@ -1,12 +1,8 @@
 from blocklist import BLOCKLIST
 from db import db
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt,
-    get_jwt_identity,
-    jwt_required,
-)
+from flask import jsonify
+from flask_jwt_extended import (create_access_token, get_jwt, jwt_required,
+                                set_access_cookies, unset_jwt_cookies)
 from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookrecord import BookrecordModel
@@ -69,10 +65,11 @@ class UserRegister(Resource):
         except:
             return {"message": "An error occurred saving the user to the database"}, 500
 
-        access_token = create_access_token(identity=user.user_id, fresh=True)
-        refresh_token = create_refresh_token(user.user_id)
+        response = jsonify({"message": "User created successfully"})
+        access_token = create_access_token(identity=user.user_id)
+        set_access_cookies(response, access_token)
 
-        return {"access_token": access_token, "refresh_token": refresh_token}, 201
+        return response
 
 
 class UserLogin(Resource):
@@ -86,9 +83,11 @@ class UserLogin(Resource):
         user = UserModel.find_by_user_id(data["user_id"])
 
         if user and check_password_hash(user.password, data["password"]):
-            access_token = create_access_token(identity=user.user_id, fresh=True)
-            refresh_token = create_refresh_token(user.user_id)
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            response = jsonify({"message": "Logged in successfully"})
+            access_token = create_access_token(identity=user.user_id)
+            set_access_cookies(response, access_token)
+
+            return response
 
         return {"message": "Invalid credentials!"}, 401
 
@@ -97,14 +96,9 @@ class UserLogout(Resource):
     @jwt_required()
     def post(self):
         jti = get_jwt()["jti"]
-        user_id = get_jwt_identity()
         BLOCKLIST.add(jti)
-        return {"message": "User <id={}> successfully logged out.".format(user_id)}, 200
 
+        response = jsonify({"message": "Logged out successfully"})
+        unset_jwt_cookies(response)
 
-class TokenRefresh(Resource):
-    @jwt_required(refresh=True)
-    def post(self):
-        current_user = get_jwt_identity()
-        new_token = create_access_token(identity=current_user, fresh=False)
-        return {"access_token": new_token}, 200
+        return response
