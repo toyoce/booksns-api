@@ -2,3 +2,5 @@ Flask
 Flask-JWT-Extended
 Flask-RESTful
 Flask-SQLAlchemy
+Flask-Cors
+python-dotenv

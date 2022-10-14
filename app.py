@@ -1,13 +1,11 @@
+import os
 from datetime import datetime, timedelta, timezone
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    get_jwt,
-    get_jwt_identity,
-    set_access_cookies,
-)
+from flask_cors import CORS
+from flask_jwt_extended import (JWTManager, create_access_token, get_jwt,
+                                get_jwt_identity, set_access_cookies)
 from flask_restful import Api
 
 from blocklist import BLOCKLIST
@@ -15,6 +13,8 @@ from db import db
 from resources.book import Book, HighlyRatedBookList, MostReviewedBookList
 from resources.bookrecord import BookrecordListPerBook
 from resources.user import User, UserLogin, UserLogout, UserRegister
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -28,6 +28,7 @@ app.config["JWT_SECRET_KEY"] = "some_secret_key"  # あとで変える
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 api = Api(app)
+CORS(app, origins=os.getenv("ORIGIN_FRONTEND"))
 
 
 @app.before_first_request
