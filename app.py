@@ -28,7 +28,7 @@ app.config["JWT_SECRET_KEY"] = "some_secret_key"  # あとで変える
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 api = Api(app)
-CORS(app, origins=os.getenv("ORIGIN_FRONTEND"))
+CORS(app, origins=os.getenv("ORIGIN_FRONTEND"), supports_credentials=True)
 
 
 @app.before_first_request
