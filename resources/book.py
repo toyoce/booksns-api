@@ -1,3 +1,6 @@
+import os
+
+import requests
 from db import db
 from flask_restful import Resource, reqparse
 from models.book import BookModel
@@ -88,6 +91,27 @@ class Book(Resource):
         book.save_to_db()
 
         return book.json(), 200
+
+
+class BookList(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("keyword", required=True)
+
+    def get(self):
+        keyword = BookList.parser.parse_args()["keyword"]
+
+        r = requests.get(
+            os.getenv("RAKUTEN_BOOKS_API_URL"),
+            params={
+                "applicationId": os.getenv("RAKUTEN_APPLICATION_ID"),
+                "formatVersion": 2,
+                "elements": "title,author,isbn,largeImageUrl",
+                "title": keyword,
+                "hits": 10,
+            },
+        )
+        books = r.json()["Items"]
+        return {"books": books}, 200
 
 
 class HighlyRatedBookList(Resource):

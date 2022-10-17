@@ -4,3 +4,4 @@ Flask-RESTful
 Flask-SQLAlchemy
 Flask-Cors
 python-dotenv
+requests

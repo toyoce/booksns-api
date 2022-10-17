@@ -2,19 +2,25 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import (JWTManager, create_access_token, get_jwt,
-                                get_jwt_identity, set_access_cookies)
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    set_access_cookies,
+)
 from flask_restful import Api
 
 from blocklist import BLOCKLIST
 from db import db
-from resources.book import Book, HighlyRatedBookList, MostReviewedBookList
+from resources.book import Book, BookList, HighlyRatedBookList, MostReviewedBookList
 from resources.bookrecord import BookrecordListPerBook
 from resources.user import User, UserLogin, UserLogout, UserRegister
-
-load_dotenv()
 
 app = Flask(__name__)
 
@@ -97,6 +103,7 @@ def revoked_token_callback(jwt_header, jwt_payload):
 
 
 api.add_resource(Book, "/books/<string:isbn>")
+api.add_resource(BookList, "/books")
 api.add_resource(HighlyRatedBookList, "/highly-rated-books")
 api.add_resource(MostReviewedBookList, "/most-reviewed-books")
 api.add_resource(BookrecordListPerBook, "/bookrecords/<string:isbn>")
