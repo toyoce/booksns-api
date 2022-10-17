@@ -111,6 +111,15 @@ class BookList(Resource):
             },
         )
         books = r.json()["Items"]
+        books = [
+            {
+                "isbn": b["isbn"],
+                "title": b["title"],
+                "author": b["author"],
+                "img": b["largeImageUrl"],
+            }
+            for b in books
+        ]
         return {"books": books}, 200
 
 
