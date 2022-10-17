@@ -66,6 +66,34 @@ class Book(Resource):
 
             return book, 200
 
+        r = requests.get(
+            os.getenv("RAKUTEN_BOOKS_API_URL"),
+            params={
+                "applicationId": os.getenv("RAKUTEN_APPLICATION_ID"),
+                "formatVersion": 2,
+                "elements": "title,author,isbn,itemCaption,largeImageUrl",
+                "isbn": isbn,
+                "hits": 1,
+            },
+        )
+
+        if r.status_code == 200 and "Items" in r.json().keys():
+            book = r.json()["Items"][0]
+            book = {
+                "isbn": book["isbn"],
+                "title": book["title"],
+                "author": book["author"],
+                "description": book["itemCaption"],
+                "img": book["largeImageUrl"],
+                "star": 0,
+                "reviewCount": 0,
+            }
+
+            if withRecords:
+                book["bookrecords"] = []
+
+            return book, 200
+
         return {"message": "Book not found."}, 404
 
     def delete(self, isbn):
