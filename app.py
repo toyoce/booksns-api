@@ -7,19 +7,15 @@ load_dotenv()
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    get_jwt,
-    get_jwt_identity,
-    set_access_cookies,
-)
+from flask_jwt_extended import (JWTManager, create_access_token, get_jwt,
+                                get_jwt_identity, set_access_cookies)
 from flask_restful import Api
 
 from blocklist import BLOCKLIST
 from db import db
-from resources.book import Book, BookList, HighlyRatedBookList, MostReviewedBookList
-from resources.bookrecord import BookrecordListPerBook
+from resources.book import (Book, BookList, HighlyRatedBookList,
+                            MostReviewedBookList)
+from resources.bookrecord import BookrecordList
 from resources.user import User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
@@ -106,7 +102,7 @@ api.add_resource(Book, "/books/<string:isbn>")
 api.add_resource(BookList, "/books")
 api.add_resource(HighlyRatedBookList, "/highly-rated-books")
 api.add_resource(MostReviewedBookList, "/most-reviewed-books")
-api.add_resource(BookrecordListPerBook, "/bookrecords/<string:isbn>")
+api.add_resource(BookrecordList, "/bookrecords")
 api.add_resource(User, "/users/<string:user_id>")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
