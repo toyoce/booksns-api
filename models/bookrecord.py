@@ -4,8 +4,9 @@ from db import db
 class BookrecordModel(db.Model):
     __tablename__ = "bookrecords"
 
-    isbn = db.Column(db.String(13), db.ForeignKey("books.isbn"), primary_key=True)
-    user_id = db.Column(db.String(20), db.ForeignKey("users.user_id"), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    isbn = db.Column(db.String(13), db.ForeignKey("books.isbn"))
+    user_id = db.Column(db.String(20), db.ForeignKey("users.user_id"))
     star = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(100))
 
@@ -17,6 +18,7 @@ class BookrecordModel(db.Model):
 
     def json(self):
         return {
+            "id": self.id,
             "isbn": self.isbn,
             "user_id": self.user_id,
             "star": self.star,

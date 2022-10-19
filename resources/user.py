@@ -22,6 +22,7 @@ class User(Resource):
         if withRecords:
             bookrecords = (
                 db.session.query(
+                    BookrecordModel.id,
                     BookrecordModel.isbn,
                     BookrecordModel.user_id,
                     BookrecordModel.star,
@@ -35,6 +36,7 @@ class User(Resource):
             )
             user["bookrecords"] = [
                 {
+                    "id": br.id,
                     "isbn": br.isbn,
                     "user_id": br.user_id,
                     "star": br.star,
