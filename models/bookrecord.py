@@ -26,6 +26,10 @@ class BookrecordModel(db.Model):
         }
 
     @classmethod
+    def find_by_id(cls, id):
+        return cls.query.filter_by(id=id).first()
+
+    @classmethod
     def find_by_isbn(cls, isbn):
         return cls.query.filter_by(isbn=isbn).all()
 

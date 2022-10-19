@@ -5,6 +5,23 @@ from models.book import BookModel
 from models.bookrecord import BookrecordModel
 
 
+class Bookrecord(Resource):
+    @jwt_required
+    def delete(self, id):
+        user_id = get_jwt_identity()
+
+        bookrecord = BookrecordModel.find_by_id(id)
+
+        if not bookrecord:
+            return {"message": "Bookrecord not found"}, 404
+
+        if user_id != bookrecord.user_id:
+            return {"message": "Cannot delete another user's review"}, 403
+
+        bookrecord.delete_from_db()
+        return {"message": "Bookrecord deleted."}, 200
+
+
 class BookrecordList(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("isbn", required=True)

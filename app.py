@@ -15,7 +15,7 @@ from blocklist import BLOCKLIST
 from db import db
 from resources.book import (Book, BookList, HighlyRatedBookList,
                             MostReviewedBookList)
-from resources.bookrecord import BookrecordList
+from resources.bookrecord import Bookrecord, BookrecordList
 from resources.user import User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
@@ -102,6 +102,7 @@ api.add_resource(Book, "/books/<string:isbn>")
 api.add_resource(BookList, "/books")
 api.add_resource(HighlyRatedBookList, "/highly-rated-books")
 api.add_resource(MostReviewedBookList, "/most-reviewed-books")
+api.add_resource(Bookrecord, "/bookrecords/<int:id>")
 api.add_resource(BookrecordList, "/bookrecords")
 api.add_resource(User, "/users/<string:user_id>")
 api.add_resource(UserRegister, "/register")
