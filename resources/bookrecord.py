@@ -6,7 +6,7 @@ from models.bookrecord import BookrecordModel
 
 
 class Bookrecord(Resource):
-    @jwt_required
+    @jwt_required()
     def delete(self, id):
         user_id = get_jwt_identity()
 
