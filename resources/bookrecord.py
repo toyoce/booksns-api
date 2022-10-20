@@ -6,6 +6,10 @@ from models.bookrecord import BookrecordModel
 
 
 class Bookrecord(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("star", type=int, required=True)
+    parser.add_argument("comment", default="")
+
     @jwt_required()
     def delete(self, id):
         user_id = get_jwt_identity()
@@ -20,6 +24,26 @@ class Bookrecord(Resource):
 
         bookrecord.delete_from_db()
         return {"message": "Bookrecord deleted."}, 200
+
+    @jwt_required()
+    def put(self, id):
+        data = Bookrecord.parser.parse_args()
+        user_id = get_jwt_identity()
+
+        bookrecord = BookrecordModel.find_by_id(id)
+
+        if not bookrecord:
+            return {"message": "Bookrecord not found"}, 404
+
+        if user_id != bookrecord.user_id:
+            return {"message": "Cannot update another user's review"}, 403
+
+        bookrecord.star = data["star"]
+        bookrecord.comment = data["comment"]
+
+        bookrecord.save_to_db()
+
+        return bookrecord.json(), 200
 
 
 class BookrecordList(Resource):
