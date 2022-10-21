@@ -10,6 +10,41 @@ class Bookrecord(Resource):
     parser.add_argument("star", type=int, required=True)
     parser.add_argument("comment", default="")
 
+    def get(self, id):
+        bookrecord = (
+            db.session.query(
+                BookrecordModel.id,
+                BookrecordModel.isbn,
+                BookModel.title,
+                BookModel.author,
+                BookModel.description,
+                BookModel.img,
+                BookrecordModel.user_id,
+                BookrecordModel.star,
+                BookrecordModel.comment,
+            )
+            .join(BookModel, BookrecordModel.isbn == BookModel.isbn)
+            .filter(BookrecordModel.id == id)
+            .first()
+        )
+
+        if not bookrecord:
+            return {"message": "Bookrecord not found"}, 404
+
+        bookrecord = {
+            "id": bookrecord.id,
+            "isbn": bookrecord.isbn,
+            "title": bookrecord.title,
+            "author": bookrecord.author,
+            "description": bookrecord.description,
+            "img": bookrecord.img,
+            "user_id": bookrecord.user_id,
+            "star": bookrecord.star,
+            "comment": bookrecord.comment,
+        }
+
+        return bookrecord, 200
+
     @jwt_required()
     def delete(self, id):
         user_id = get_jwt_identity()
