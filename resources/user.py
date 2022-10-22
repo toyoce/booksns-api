@@ -59,7 +59,7 @@ class UserRegister(Resource):
         data = UserRegister.parser.parse_args()
 
         if UserModel.find_by_user_id(data["user_id"]):
-            return {"message": "A user with that username already exists."}, 400
+            return {"message": "A user with that user_id already exists."}, 409
 
         try:
             user = UserModel(data["user_id"], generate_password_hash(data["password"]))
