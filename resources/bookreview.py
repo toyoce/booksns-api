@@ -2,7 +2,7 @@ from db import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 from models.book import BookModel
-from models.bookrecord import BookrecordModel
+from models.bookreview import BookrecordModel
 
 
 class Bookrecord(Resource):
