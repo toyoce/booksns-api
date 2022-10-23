@@ -15,7 +15,7 @@ from blocklist import BLOCKLIST
 from db import db
 from resources.book import (Book, BookList, HighlyRatedBookList,
                             MostReviewedBookList)
-from resources.bookrecord import Bookrecord, BookrecordList
+from resources.bookreview import Bookrecord, BookrecordList
 from resources.user import User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)

@@ -4,7 +4,7 @@ import requests
 from db import db
 from flask_restful import Resource, reqparse
 from models.book import BookModel
-from models.bookrecord import BookrecordModel
+from models.bookreview import BookrecordModel
 
 
 class Book(Resource):
