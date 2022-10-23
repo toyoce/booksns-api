@@ -1,8 +1,8 @@
 from db import db
 
 
-class BookrecordModel(db.Model):
-    __tablename__ = "bookrecords"
+class BookreviewModel(db.Model):
+    __tablename__ = "bookreviews"
 
     id = db.Column(db.Integer, primary_key=True)
     isbn = db.Column(db.String(13), db.ForeignKey("books.isbn"))

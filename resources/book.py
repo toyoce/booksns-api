@@ -4,12 +4,12 @@ import requests
 from db import db
 from flask_restful import Resource, reqparse
 from models.book import BookModel
-from models.bookreview import BookrecordModel
+from models.bookreview import BookreviewModel
 
 
 class Book(Resource):
     parser_get = reqparse.RequestParser()
-    parser_get.add_argument("withRecords", type=int, default=0)
+    parser_get.add_argument("withReviews", type=int, default=0)
 
     parser_put = reqparse.RequestParser()
     parser_put.add_argument("title", required=True)
@@ -18,16 +18,16 @@ class Book(Resource):
     parser_put.add_argument("img")
 
     def get(self, isbn):
-        withRecords = Book.parser_get.parse_args()["withRecords"]
+        withReviews = Book.parser_get.parse_args()["withReviews"]
 
         agg = (
             db.session.query(
-                BookrecordModel.isbn,
-                db.func.avg(BookrecordModel.star).label("star"),
+                BookreviewModel.isbn,
+                db.func.avg(BookreviewModel.star).label("star"),
                 db.func.count().label("reviewCount"),
             )
-            .filter(BookrecordModel.isbn == isbn)
-            .group_by(BookrecordModel.isbn)
+            .filter(BookreviewModel.isbn == isbn)
+            .group_by(BookreviewModel.isbn)
             .subquery()
         )
         book = (
@@ -56,13 +56,13 @@ class Book(Resource):
                 "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
 
-            if withRecords:
-                bookrecords = (
-                    db.session.query(BookrecordModel)
-                    .filter(BookrecordModel.isbn == isbn)
+            if withReviews:
+                bookreviews = (
+                    db.session.query(BookreviewModel)
+                    .filter(BookreviewModel.isbn == isbn)
                     .all()
                 )
-                book["bookrecords"] = [br.json() for br in bookrecords]
+                book["bookreviews"] = [br.json() for br in bookreviews]
 
             return book, 200
 
@@ -89,8 +89,8 @@ class Book(Resource):
                 "reviewCount": 0,
             }
 
-            if withRecords:
-                book["bookrecords"] = []
+            if withReviews:
+                book["bookreviews"] = []
 
             return book, 200
 
@@ -160,9 +160,9 @@ class HighlyRatedBookList(Resource):
 
         agg = (
             db.session.query(
-                BookrecordModel.isbn, db.func.avg(BookrecordModel.star).label("star")
+                BookreviewModel.isbn, db.func.avg(BookreviewModel.star).label("star")
             )
-            .group_by(BookrecordModel.isbn)
+            .group_by(BookreviewModel.isbn)
             .subquery()
         )
         books = (
@@ -185,8 +185,8 @@ class MostReviewedBookList(Resource):
         topn = MostReviewedBookList.parser.parse_args()["topn"]
 
         agg = (
-            db.session.query(BookrecordModel.isbn, db.func.count().label("reviewCount"))
-            .group_by(BookrecordModel.isbn)
+            db.session.query(BookreviewModel.isbn, db.func.count().label("reviewCount"))
+            .group_by(BookreviewModel.isbn)
             .subquery()
         )
         books = (

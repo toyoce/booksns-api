@@ -2,86 +2,86 @@ from db import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 from models.book import BookModel
-from models.bookreview import BookrecordModel
+from models.bookreview import BookreviewModel
 
 
-class Bookrecord(Resource):
+class Bookreview(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("star", type=int, required=True)
     parser.add_argument("comment", default="")
 
     def get(self, id):
-        bookrecord = (
+        bookreview = (
             db.session.query(
-                BookrecordModel.id,
-                BookrecordModel.isbn,
+                BookreviewModel.id,
+                BookreviewModel.isbn,
                 BookModel.title,
                 BookModel.author,
                 BookModel.description,
                 BookModel.img,
-                BookrecordModel.user_id,
-                BookrecordModel.star,
-                BookrecordModel.comment,
+                BookreviewModel.user_id,
+                BookreviewModel.star,
+                BookreviewModel.comment,
             )
-            .join(BookModel, BookrecordModel.isbn == BookModel.isbn)
-            .filter(BookrecordModel.id == id)
+            .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
+            .filter(BookreviewModel.id == id)
             .first()
         )
 
-        if not bookrecord:
-            return {"message": "Bookrecord not found"}, 404
+        if not bookreview:
+            return {"message": "Bookreview not found"}, 404
 
-        bookrecord = {
-            "id": bookrecord.id,
-            "isbn": bookrecord.isbn,
-            "title": bookrecord.title,
-            "author": bookrecord.author,
-            "description": bookrecord.description,
-            "img": bookrecord.img,
-            "user_id": bookrecord.user_id,
-            "star": bookrecord.star,
-            "comment": bookrecord.comment,
+        bookreview = {
+            "id": bookreview.id,
+            "isbn": bookreview.isbn,
+            "title": bookreview.title,
+            "author": bookreview.author,
+            "description": bookreview.description,
+            "img": bookreview.img,
+            "user_id": bookreview.user_id,
+            "star": bookreview.star,
+            "comment": bookreview.comment,
         }
 
-        return bookrecord, 200
+        return bookreview, 200
 
     @jwt_required()
     def delete(self, id):
         user_id = get_jwt_identity()
 
-        bookrecord = BookrecordModel.find_by_id(id)
+        bookreview = BookreviewModel.find_by_id(id)
 
-        if not bookrecord:
-            return {"message": "Bookrecord not found"}, 404
+        if not bookreview:
+            return {"message": "Bookreview not found"}, 404
 
-        if user_id != bookrecord.user_id:
+        if user_id != bookreview.user_id:
             return {"message": "Cannot delete another user's review"}, 403
 
-        bookrecord.delete_from_db()
-        return {"message": "Bookrecord deleted."}, 200
+        bookreview.delete_from_db()
+        return {"message": "Bookreview deleted."}, 200
 
     @jwt_required()
     def put(self, id):
-        data = Bookrecord.parser.parse_args()
+        data = Bookreview.parser.parse_args()
         user_id = get_jwt_identity()
 
-        bookrecord = BookrecordModel.find_by_id(id)
+        bookreview = BookreviewModel.find_by_id(id)
 
-        if not bookrecord:
-            return {"message": "Bookrecord not found"}, 404
+        if not bookreview:
+            return {"message": "Bookreview not found"}, 404
 
-        if user_id != bookrecord.user_id:
+        if user_id != bookreview.user_id:
             return {"message": "Cannot update another user's review"}, 403
 
-        bookrecord.star = data["star"]
-        bookrecord.comment = data["comment"]
+        bookreview.star = data["star"]
+        bookreview.comment = data["comment"]
 
-        bookrecord.save_to_db()
+        bookreview.save_to_db()
 
-        return bookrecord.json(), 200
+        return bookreview.json(), 200
 
 
-class BookrecordList(Resource):
+class BookreviewList(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("isbn", required=True)
     parser.add_argument("title", required=True)
@@ -93,7 +93,7 @@ class BookrecordList(Resource):
 
     @jwt_required()
     def post(self):
-        data = BookrecordList.parser.parse_args()
+        data = BookreviewList.parser.parse_args()
         user_id = get_jwt_identity()
 
         if not BookModel.find_by_isbn(data["isbn"]):
@@ -106,10 +106,10 @@ class BookrecordList(Resource):
             )
             db.session.add(book)
 
-        bookrecord = BookrecordModel(
+        bookreview = BookreviewModel(
             data["isbn"], user_id, data["star"], data["comment"]
         )
-        db.session.add(bookrecord)
+        db.session.add(bookreview)
         db.session.commit()
 
-        return {"message": "Bookrecord created successfully"}, 201
+        return {"message": "Bookreview created successfully"}, 201

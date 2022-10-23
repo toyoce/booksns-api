@@ -5,36 +5,36 @@ from flask_jwt_extended import (create_access_token, get_jwt, jwt_required,
                                 set_access_cookies, unset_jwt_cookies)
 from flask_restful import Resource, reqparse
 from models.book import BookModel
-from models.bookreview import BookrecordModel
+from models.bookreview import BookreviewModel
 from models.user import UserModel
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class User(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("withRecords", type=int, default=0)
+    parser.add_argument("withReviews", type=int, default=0)
 
     def get(self, user_id):
-        withRecords = User.parser.parse_args()["withRecords"]
+        withReviews = User.parser.parse_args()["withReviews"]
 
         user = {"user_id": user_id}
 
-        if withRecords:
-            bookrecords = (
+        if withReviews:
+            bookreviews = (
                 db.session.query(
-                    BookrecordModel.id,
-                    BookrecordModel.isbn,
-                    BookrecordModel.user_id,
-                    BookrecordModel.star,
-                    BookrecordModel.comment,
+                    BookreviewModel.id,
+                    BookreviewModel.isbn,
+                    BookreviewModel.user_id,
+                    BookreviewModel.star,
+                    BookreviewModel.comment,
                     BookModel.title,
                     BookModel.img,
                 )
-                .join(BookModel, BookrecordModel.isbn == BookModel.isbn)
-                .filter(BookrecordModel.user_id == user_id)
+                .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
+                .filter(BookreviewModel.user_id == user_id)
                 .all()
             )
-            user["bookrecords"] = [
+            user["bookreviews"] = [
                 {
                     "id": br.id,
                     "isbn": br.isbn,
@@ -44,7 +44,7 @@ class User(Resource):
                     "title": br.title,
                     "img": br.img,
                 }
-                for br in bookrecords
+                for br in bookreviews
             ]
 
         return user, 200
