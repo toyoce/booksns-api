@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 Flask-Cors
 python-dotenv
 requests
+PyMySQL
