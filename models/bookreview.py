@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from db import db
 
 
@@ -9,12 +11,14 @@ class BookreviewModel(db.Model):
     user_id = db.Column(db.String(20), db.ForeignKey("users.user_id"))
     star = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(100))
+    updated_at = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, isbn, user_id, star, comment):
         self.isbn = isbn
         self.user_id = user_id
         self.star = star
         self.comment = comment
+        self.updated_at = datetime.now()
 
     def json(self):
         return {
@@ -23,6 +27,7 @@ class BookreviewModel(db.Model):
             "user_id": self.user_id,
             "star": self.star,
             "comment": self.comment,
+            "updated_at": self.updated_at.isoformat(),
         }
 
     @classmethod

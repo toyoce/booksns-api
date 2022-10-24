@@ -52,7 +52,7 @@ class Book(Resource):
                 "author": book.author,
                 "description": book.description,
                 "img": book.img,
-                "star": book.star if book.star else 0,
+                "star": float(book.star) if book.star else 0,
                 "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
 
@@ -173,7 +173,7 @@ class HighlyRatedBookList(Resource):
             .all()
         )
 
-        books = [{"isbn": b.isbn, "img": b.img, "star": b.star} for b in books]
+        books = [{"isbn": b.isbn, "img": b.img, "star": float(b.star)} for b in books]
         return {"books": books}, 200
 
 

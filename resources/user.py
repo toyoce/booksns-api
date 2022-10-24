@@ -27,6 +27,7 @@ class User(Resource):
                     BookreviewModel.user_id,
                     BookreviewModel.star,
                     BookreviewModel.comment,
+                    BookreviewModel.updated_at,
                     BookModel.title,
                     BookModel.img,
                 )
@@ -41,6 +42,7 @@ class User(Resource):
                     "user_id": br.user_id,
                     "star": br.star,
                     "comment": br.comment,
+                    "updated_at": br.updated_at.isoformat(),
                     "title": br.title,
                     "img": br.img,
                 }

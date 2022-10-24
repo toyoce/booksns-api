@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from db import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
@@ -22,6 +24,7 @@ class Bookreview(Resource):
                 BookreviewModel.user_id,
                 BookreviewModel.star,
                 BookreviewModel.comment,
+                BookreviewModel.updated_at
             )
             .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
             .filter(BookreviewModel.id == id)
@@ -41,6 +44,7 @@ class Bookreview(Resource):
             "user_id": bookreview.user_id,
             "star": bookreview.star,
             "comment": bookreview.comment,
+            "updated_at": bookreview.updated_at.isoformat(),
         }
 
         return bookreview, 200
@@ -75,6 +79,7 @@ class Bookreview(Resource):
 
         bookreview.star = data["star"]
         bookreview.comment = data["comment"]
+        bookreview.updated_at = datetime.now()
 
         bookreview.save_to_db()
 
