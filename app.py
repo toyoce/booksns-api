@@ -26,7 +26,7 @@ app.config["PROPAGATE_EXCEPTIONS"] = True
 
 app.config["JWT_COOKIE_SECURE"] = False  # あとでTrueに変える
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
-app.config["JWT_SECRET_KEY"] = "some_secret_key"  # あとで変える
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 api = Api(app)
