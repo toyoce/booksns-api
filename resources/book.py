@@ -9,7 +9,7 @@ from models.bookreview import BookreviewModel
 
 class Book(Resource):
     parser_get = reqparse.RequestParser()
-    parser_get.add_argument("withReviews", type=int, default=0)
+    parser_get.add_argument("withReviews", location="args", type=int, default=0)
 
     parser_put = reqparse.RequestParser()
     parser_put.add_argument("title", required=True)
@@ -123,7 +123,7 @@ class Book(Resource):
 
 class BookList(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("keyword", required=True)
+    parser.add_argument("keyword", location="args", required=True)
 
     def get(self):
         keyword = BookList.parser.parse_args()["keyword"]
@@ -153,7 +153,7 @@ class BookList(Resource):
 
 class HighlyRatedBookList(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("topn", type=int, default=6)
+    parser.add_argument("topn", location="args", type=int, default=6)
 
     def get(self):
         topn = HighlyRatedBookList.parser.parse_args()["topn"]
@@ -179,7 +179,7 @@ class HighlyRatedBookList(Resource):
 
 class MostReviewedBookList(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("topn", type=int, default=6)
+    parser.add_argument("topn", location="args", type=int, default=6)
 
     def get(self):
         topn = MostReviewedBookList.parser.parse_args()["topn"]

@@ -12,7 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 class User(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("withReviews", type=int, default=0)
+    parser.add_argument("withReviews", location="args", type=int, default=0)
 
     def get(self, user_id):
         withReviews = User.parser.parse_args()["withReviews"]
