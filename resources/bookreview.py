@@ -5,6 +5,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookreview import BookreviewModel
+from models.like import LikeModel
 
 
 class Bookreview(Resource):
@@ -24,7 +25,7 @@ class Bookreview(Resource):
                 BookreviewModel.user_id,
                 BookreviewModel.star,
                 BookreviewModel.comment,
-                BookreviewModel.updated_at
+                BookreviewModel.updated_at,
             )
             .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
             .filter(BookreviewModel.id == id)
@@ -87,18 +88,67 @@ class Bookreview(Resource):
 
 
 class BookreviewList(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("isbn", required=True)
-    parser.add_argument("title", required=True)
-    parser.add_argument("author", default="")
-    parser.add_argument("description", default="")
-    parser.add_argument("img", default="")
-    parser.add_argument("star", type=int, required=True)
-    parser.add_argument("comment", default="")
+    parser_get = reqparse.RequestParser()
+    parser_get.add_argument("isbn", location="args")
+
+    parser_post = reqparse.RequestParser()
+    parser_post.add_argument("isbn", required=True)
+    parser_post.add_argument("title", required=True)
+    parser_post.add_argument("author", default="")
+    parser_post.add_argument("description", default="")
+    parser_post.add_argument("img", default="")
+    parser_post.add_argument("star", type=int, required=True)
+    parser_post.add_argument("comment", default="")
+
+    @jwt_required()
+    def get(self):
+        data = BookreviewList.parser_get.parse_args()
+        isbn = data["isbn"]
+        user_id = get_jwt_identity()
+
+        fbr = (
+            db.session.query(BookreviewModel)
+            .filter(BookreviewModel.isbn == isbn)
+            .subquery()
+        )
+
+        bookreviews = (
+            db.session.query(
+                fbr.c.id,
+                fbr.c.user_id,
+                fbr.c.star,
+                fbr.c.comment,
+                fbr.c.updated_at,
+                db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
+                    "like_count"
+                ),
+                db.func.sum(db.case((LikeModel.user_id == user_id, 1), else_=0)).label(
+                    "my_review"
+                ),
+            )
+            .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
+            .group_by(fbr.c.id)
+            .all()
+        )
+
+        bookreviews = [
+            {
+                "id": br.id,
+                "user_id": br.user_id,
+                "star": br.star,
+                "comment": br.comment,
+                "updated_at": br.updated_at.isoformat(),
+                "like_count": int(br.like_count),
+                "my_review": int(br.my_review),
+            }
+            for br in bookreviews
+        ]
+
+        return {"bookreviews": bookreviews}, 200
 
     @jwt_required()
     def post(self):
-        data = BookreviewList.parser.parse_args()
+        data = BookreviewList.parser_post.parse_args()
         user_id = get_jwt_identity()
 
         if not BookModel.find_by_isbn(data["isbn"]):
