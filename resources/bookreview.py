@@ -104,7 +104,7 @@ class BookreviewList(Resource):
     def get(self):
         data = BookreviewList.parser_get.parse_args()
         isbn = data["isbn"]
-        user_id = get_jwt_identity() or ""
+        current_user_id = get_jwt_identity() or ""
 
         fbr = (
             db.session.query(BookreviewModel)
@@ -122,9 +122,9 @@ class BookreviewList(Resource):
                 db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
                     "like_count"
                 ),
-                db.func.sum(db.case((LikeModel.user_id == user_id, 1), else_=0)).label(
-                    "my_review"
-                ),
+                db.func.sum(
+                    db.case((LikeModel.user_id == current_user_id, 1), else_=0)
+                ).label("my_review"),
             )
             .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
             .group_by(fbr.c.id)
