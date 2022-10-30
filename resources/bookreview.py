@@ -100,11 +100,11 @@ class BookreviewList(Resource):
     parser_post.add_argument("star", type=int, required=True)
     parser_post.add_argument("comment", default="")
 
-    @jwt_required()
+    @jwt_required(optional=True)
     def get(self):
         data = BookreviewList.parser_get.parse_args()
         isbn = data["isbn"]
-        user_id = get_jwt_identity()
+        user_id = get_jwt_identity() or ""
 
         fbr = (
             db.session.query(BookreviewModel)
