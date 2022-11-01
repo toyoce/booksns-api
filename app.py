@@ -16,6 +16,7 @@ from db import db
 from resources.book import (Book, BookList, HighlyRatedBookList,
                             MostReviewedBookList)
 from resources.bookreview import Bookreview, BookreviewList
+from resources.like import LikeList
 from resources.user import User, UserLogin, UserLogout, UserRegister
 
 app = Flask(__name__)
@@ -104,6 +105,7 @@ api.add_resource(HighlyRatedBookList, "/highly-rated-books")
 api.add_resource(MostReviewedBookList, "/most-reviewed-books")
 api.add_resource(Bookreview, "/bookreviews/<int:id>")
 api.add_resource(BookreviewList, "/bookreviews")
+api.add_resource(LikeList, "/likes")
 api.add_resource(User, "/users/<string:user_id>")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
