@@ -124,7 +124,7 @@ class BookreviewList(Resource):
                 ),
                 db.func.sum(
                     db.case((LikeModel.user_id == current_user_id, 1), else_=0)
-                ).label("my_review"),
+                ).label("my_like"),
             )
             .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
             .group_by(fbr.c.id)
@@ -139,7 +139,7 @@ class BookreviewList(Resource):
                 "comment": br.comment,
                 "updated_at": br.updated_at.isoformat(),
                 "like_count": int(br.like_count),
-                "my_review": int(br.my_review),
+                "my_like": int(br.my_like),
             }
             for br in bookreviews
         ]
