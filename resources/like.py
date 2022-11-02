@@ -33,7 +33,28 @@ class LikeList(Resource):
             return {"message": "Cannot like the same bookreview twice."}, 400
 
         like = LikeModel(bookreview_id, user_id)
-        db.session.add(like)
-        db.session.commit()
+        like.save_to_db()
 
         return {"message": "Like created successfully."}, 200
+
+    @jwt_required()
+    def delete(self):
+        bookreview_id = LikeList.parser.parse_args()["bookreview_id"]
+        user_id = get_jwt_identity()
+
+        like = (
+            db.session.query(LikeModel)
+            .filter(LikeModel.bookreview_id == bookreview_id)
+            .filter(LikeModel.user_id == user_id)
+            .first()
+        )
+
+        if not like:
+            return {"message": "Like not found"}, 404
+
+        if user_id != like.user_id:
+            return {"message": "Cannot delete another user's like"}, 403
+
+        like.delete_from_db()
+
+        return {"message": "Like deleted."}, 200
