@@ -163,7 +163,63 @@ class BookreviewList(Resource):
         return bookreviews
 
     def get_bookreviews_for_user_id(self, user_id, current_user_id):
-        pass
+        fbr = (
+            db.session.query(BookreviewModel)
+            .filter(BookreviewModel.user_id == user_id)
+            .subquery()
+        )
+
+        agg = (
+            db.session.query(
+                fbr.c.id,
+                fbr.c.isbn,
+                fbr.c.star,
+                fbr.c.comment,
+                fbr.c.updated_at,
+                db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
+                    "like_count"
+                ),
+                db.func.sum(
+                    db.case((LikeModel.user_id == current_user_id, 1), else_=0)
+                ).label("my_like"),
+            )
+            .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
+            .group_by(fbr.c.id)
+            .subquery()
+        )
+
+        bookreviews = (
+            db.session.query(
+                agg.c.id,
+                agg.c.isbn,
+                BookModel.title,
+                BookModel.img,
+                agg.c.star,
+                agg.c.comment,
+                agg.c.updated_at,
+                agg.c.like_count,
+                agg.c.my_like,
+            )
+            .join(BookModel, agg.c.isbn == BookModel.isbn)
+            .all()
+        )
+
+        bookreviews = [
+            {
+                "id": br.id,
+                "isbn": br.isbn,
+                "title": br.title,
+                "img": br.img,
+                "star": br.star,
+                "comment": br.comment,
+                "updated_at": br.updated_at.isoformat(),
+                "like_count": int(br.like_count),
+                "my_like": int(br.my_like),
+            }
+            for br in bookreviews
+        ]
+
+        return bookreviews
 
     @jwt_required()
     def post(self):
