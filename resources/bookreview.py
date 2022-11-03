@@ -90,6 +90,7 @@ class Bookreview(Resource):
 class BookreviewList(Resource):
     parser_get = reqparse.RequestParser()
     parser_get.add_argument("isbn", location="args")
+    parser_get.add_argument("user_id", location="args")
 
     parser_post = reqparse.RequestParser()
     parser_post.add_argument("isbn", required=True)
@@ -104,8 +105,23 @@ class BookreviewList(Resource):
     def get(self):
         data = BookreviewList.parser_get.parse_args()
         isbn = data["isbn"]
+        user_id = data["user_id"]
         current_user_id = get_jwt_identity() or ""
 
+        if not (isbn or user_id):
+            return {"message": "isbn or user_id is required"}, 400
+
+        if isbn and user_id:
+            return {"message": "Cannot specify both isbn and user_id"}, 400
+
+        if isbn:
+            bookreviews = self.get_bookreviews_for_isbn(isbn, current_user_id)
+        elif user_id:
+            bookreviews = self.get_bookreviews_for_user_id(user_id, current_user_id)
+
+        return {"bookreviews": bookreviews}, 200
+
+    def get_bookreviews_for_isbn(self, isbn, current_user_id):
         fbr = (
             db.session.query(BookreviewModel)
             .filter(BookreviewModel.isbn == isbn)
@@ -144,7 +160,10 @@ class BookreviewList(Resource):
             for br in bookreviews
         ]
 
-        return {"bookreviews": bookreviews}, 200
+        return bookreviews
+
+    def get_bookreviews_for_user_id(self, user_id, current_user_id):
+        pass
 
     @jwt_required()
     def post(self):
