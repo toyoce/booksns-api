@@ -8,18 +8,7 @@ from models.bookreview import BookreviewModel
 
 
 class Book(Resource):
-    parser_get = reqparse.RequestParser()
-    parser_get.add_argument("withReviews", location="args", type=int, default=0)
-
-    parser_put = reqparse.RequestParser()
-    parser_put.add_argument("title", required=True)
-    parser_put.add_argument("author")
-    parser_put.add_argument("description")
-    parser_put.add_argument("img")
-
     def get(self, isbn):
-        withReviews = Book.parser_get.parse_args()["withReviews"]
-
         agg = (
             db.session.query(
                 BookreviewModel.isbn,
@@ -56,14 +45,6 @@ class Book(Resource):
                 "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
 
-            if withReviews:
-                bookreviews = (
-                    db.session.query(BookreviewModel)
-                    .filter(BookreviewModel.isbn == isbn)
-                    .all()
-                )
-                book["bookreviews"] = [br.json() for br in bookreviews]
-
             return book, 200
 
         r = requests.get(
@@ -89,36 +70,9 @@ class Book(Resource):
                 "reviewCount": 0,
             }
 
-            if withReviews:
-                book["bookreviews"] = []
-
             return book, 200
 
         return {"message": "Book not found."}, 404
-
-    def delete(self, isbn):
-        book = BookModel.find_by_isbn(isbn)
-        if book:
-            book.delete_from_db()
-            return {"message": "Book deleted."}, 200
-        return {"message": "Book not found."}, 404
-
-    def put(self, isbn):
-        data = Book.parser_put.parse_args()
-
-        book = BookModel.find_by_isbn(isbn)
-
-        if book:
-            book.title = data["title"]
-            book.author = data["author"]
-            book.description = data["description"]
-            book.img = data["img"]
-        else:
-            book = BookModel(isbn, **data)
-
-        book.save_to_db()
-
-        return book.json(), 200
 
 
 class BookList(Resource):

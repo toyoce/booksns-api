@@ -10,48 +10,6 @@ from models.user import UserModel
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
-class User(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("withReviews", location="args", type=int, default=0)
-
-    def get(self, user_id):
-        withReviews = User.parser.parse_args()["withReviews"]
-
-        user = {"user_id": user_id}
-
-        if withReviews:
-            bookreviews = (
-                db.session.query(
-                    BookreviewModel.id,
-                    BookreviewModel.isbn,
-                    BookreviewModel.user_id,
-                    BookreviewModel.star,
-                    BookreviewModel.comment,
-                    BookreviewModel.updated_at,
-                    BookModel.title,
-                    BookModel.img,
-                )
-                .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
-                .filter(BookreviewModel.user_id == user_id)
-                .all()
-            )
-            user["bookreviews"] = [
-                {
-                    "id": br.id,
-                    "isbn": br.isbn,
-                    "user_id": br.user_id,
-                    "star": br.star,
-                    "comment": br.comment,
-                    "updated_at": br.updated_at.isoformat(),
-                    "title": br.title,
-                    "img": br.img,
-                }
-                for br in bookreviews
-            ]
-
-        return user, 200
-
-
 class UserRegister(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("user_id", required=True)

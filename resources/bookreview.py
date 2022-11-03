@@ -5,6 +5,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookreview import BookreviewModel
+from models.like import LikeModel
 
 
 class Bookreview(Resource):
@@ -24,7 +25,7 @@ class Bookreview(Resource):
                 BookreviewModel.user_id,
                 BookreviewModel.star,
                 BookreviewModel.comment,
-                BookreviewModel.updated_at
+                BookreviewModel.updated_at,
             )
             .join(BookModel, BookreviewModel.isbn == BookModel.isbn)
             .filter(BookreviewModel.id == id)
@@ -87,18 +88,142 @@ class Bookreview(Resource):
 
 
 class BookreviewList(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("isbn", required=True)
-    parser.add_argument("title", required=True)
-    parser.add_argument("author", default="")
-    parser.add_argument("description", default="")
-    parser.add_argument("img", default="")
-    parser.add_argument("star", type=int, required=True)
-    parser.add_argument("comment", default="")
+    parser_get = reqparse.RequestParser()
+    parser_get.add_argument("isbn", location="args")
+    parser_get.add_argument("user_id", location="args")
+
+    parser_post = reqparse.RequestParser()
+    parser_post.add_argument("isbn", required=True)
+    parser_post.add_argument("title", required=True)
+    parser_post.add_argument("author", default="")
+    parser_post.add_argument("description", default="")
+    parser_post.add_argument("img", default="")
+    parser_post.add_argument("star", type=int, required=True)
+    parser_post.add_argument("comment", default="")
+
+    @jwt_required(optional=True)
+    def get(self):
+        data = BookreviewList.parser_get.parse_args()
+        isbn = data["isbn"]
+        user_id = data["user_id"]
+        current_user_id = get_jwt_identity() or ""
+
+        if not (isbn or user_id):
+            return {"message": "isbn or user_id is required"}, 400
+
+        if isbn and user_id:
+            return {"message": "Cannot specify both isbn and user_id"}, 400
+
+        if isbn:
+            bookreviews = self.get_bookreviews_for_isbn(isbn, current_user_id)
+        elif user_id:
+            bookreviews = self.get_bookreviews_for_user_id(user_id, current_user_id)
+
+        return {"bookreviews": bookreviews}, 200
+
+    def get_bookreviews_for_isbn(self, isbn, current_user_id):
+        fbr = (
+            db.session.query(BookreviewModel)
+            .filter(BookreviewModel.isbn == isbn)
+            .subquery()
+        )
+
+        bookreviews = (
+            db.session.query(
+                fbr.c.id,
+                fbr.c.user_id,
+                fbr.c.star,
+                fbr.c.comment,
+                fbr.c.updated_at,
+                db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
+                    "like_count"
+                ),
+                db.func.sum(
+                    db.case((LikeModel.user_id == current_user_id, 1), else_=0)
+                ).label("my_like"),
+            )
+            .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
+            .group_by(fbr.c.id)
+            .all()
+        )
+
+        bookreviews = [
+            {
+                "id": br.id,
+                "user_id": br.user_id,
+                "star": br.star,
+                "comment": br.comment,
+                "updated_at": br.updated_at.isoformat(),
+                "like_count": int(br.like_count),
+                "my_like": int(br.my_like),
+            }
+            for br in bookreviews
+        ]
+
+        return bookreviews
+
+    def get_bookreviews_for_user_id(self, user_id, current_user_id):
+        fbr = (
+            db.session.query(BookreviewModel)
+            .filter(BookreviewModel.user_id == user_id)
+            .subquery()
+        )
+
+        agg = (
+            db.session.query(
+                fbr.c.id,
+                fbr.c.isbn,
+                fbr.c.star,
+                fbr.c.comment,
+                fbr.c.updated_at,
+                db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
+                    "like_count"
+                ),
+                db.func.sum(
+                    db.case((LikeModel.user_id == current_user_id, 1), else_=0)
+                ).label("my_like"),
+            )
+            .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
+            .group_by(fbr.c.id)
+            .subquery()
+        )
+
+        bookreviews = (
+            db.session.query(
+                agg.c.id,
+                agg.c.isbn,
+                BookModel.title,
+                BookModel.img,
+                agg.c.star,
+                agg.c.comment,
+                agg.c.updated_at,
+                agg.c.like_count,
+                agg.c.my_like,
+            )
+            .join(BookModel, agg.c.isbn == BookModel.isbn)
+            .all()
+        )
+
+        bookreviews = [
+            {
+                "id": br.id,
+                "isbn": br.isbn,
+                "title": br.title,
+                "img": br.img,
+                "star": br.star,
+                "comment": br.comment,
+                "updated_at": br.updated_at.isoformat(),
+                "like_count": int(br.like_count),
+                "my_like": int(br.my_like),
+            }
+            for br in bookreviews
+        ]
+
+        return bookreviews
 
     @jwt_required()
     def post(self):
-        data = BookreviewList.parser.parse_args()
+        data = BookreviewList.parser_post.parse_args()
         user_id = get_jwt_identity()
 
         if not BookModel.find_by_isbn(data["isbn"]):
