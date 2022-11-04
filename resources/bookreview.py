@@ -226,6 +226,16 @@ class BookreviewList(Resource):
         data = BookreviewList.parser_post.parse_args()
         user_id = get_jwt_identity()
 
+        existing_bookreview = (
+            db.session.query(BookreviewModel)
+            .filter(BookreviewModel.isbn == data["isbn"])
+            .filter(BookreviewModel.user_id == user_id)
+            .first()
+        )
+
+        if existing_bookreview:
+            return {"message": "Cannot review the same book twice."}, 400
+
         if not BookModel.find_by_isbn(data["isbn"]):
             book = BookModel(
                 data["isbn"],
