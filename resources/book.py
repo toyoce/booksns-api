@@ -2,6 +2,7 @@ import os
 
 import requests
 from db import db
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookreview import BookreviewModel
@@ -79,8 +80,10 @@ class BookList(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("keyword", location="args", required=True)
 
+    @jwt_required(optional=True)
     def get(self):
         keyword = BookList.parser.parse_args()["keyword"]
+        user_id = get_jwt_identity()
 
         r = requests.get(
             os.getenv("RAKUTEN_BOOKS_API_URL"),
@@ -89,7 +92,6 @@ class BookList(Resource):
                 "formatVersion": 2,
                 "elements": "title,author,isbn,largeImageUrl",
                 "title": keyword,
-                "hits": 10,
             },
         )
         books = r.json()["Items"]
@@ -102,6 +104,16 @@ class BookList(Resource):
             }
             for b in books
         ]
+
+        if user_id:
+            res = (
+                db.session.query(BookreviewModel.isbn)
+                .filter(BookreviewModel.user_id == user_id)
+                .all()
+            )
+            existing_isbns = [r.isbn for r in res]
+            books = [b for b in books if b["isbn"] not in existing_isbns]
+
         return {"books": books}, 200
 
 
