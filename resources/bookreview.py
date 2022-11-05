@@ -98,6 +98,7 @@ class BookreviewList(Resource):
     parser_post.add_argument("author", default="")
     parser_post.add_argument("description", default="")
     parser_post.add_argument("img", default="")
+    parser_post.add_argument("url", default="")
     parser_post.add_argument("star", type=int, required=True)
     parser_post.add_argument("comment", default="")
 
@@ -243,6 +244,7 @@ class BookreviewList(Resource):
                 data["author"],
                 data["description"],
                 data["img"],
+                data["url"],
             )
             db.session.add(book)
 

@@ -27,6 +27,7 @@ class Book(Resource):
                 BookModel.author,
                 BookModel.description,
                 BookModel.img,
+                BookModel.url,
                 agg.c.star,
                 agg.c.reviewCount,
             )
@@ -42,6 +43,7 @@ class Book(Resource):
                 "author": book.author,
                 "description": book.description,
                 "img": book.img,
+                "url": book.url,
                 "star": float(book.star) if book.star else 0,
                 "reviewCount": book.reviewCount if book.reviewCount else 0,
             }
@@ -53,7 +55,7 @@ class Book(Resource):
             params={
                 "applicationId": os.getenv("RAKUTEN_APPLICATION_ID"),
                 "formatVersion": 2,
-                "elements": "title,author,isbn,itemCaption,largeImageUrl",
+                "elements": "title,author,isbn,itemCaption,largeImageUrl,itemUrl",
                 "isbn": isbn,
                 "hits": 1,
             },
@@ -67,6 +69,7 @@ class Book(Resource):
                 "author": book["author"],
                 "description": book["itemCaption"],
                 "img": book["largeImageUrl"],
+                "url": book["itemUrl"],
                 "star": 0,
                 "reviewCount": 0,
             }

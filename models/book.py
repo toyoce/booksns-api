@@ -9,13 +9,15 @@ class BookModel(db.Model):
     author = db.Column(db.String(80))
     description = db.Column(db.String(300))
     img = db.Column(db.String(100))
+    url = db.Column(db.String(60))
 
-    def __init__(self, isbn, title, author, description, img):
+    def __init__(self, isbn, title, author, description, img, url):
         self.isbn = isbn
         self.title = title
         self.author = author
         self.description = description
         self.img = img
+        self.url = url
 
     def json(self):
         return {
@@ -24,6 +26,7 @@ class BookModel(db.Model):
             "author": self.author,
             "description": self.description,
             "img": self.img,
+            "url": self.url,
         }
 
     @classmethod
