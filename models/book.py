@@ -5,11 +5,11 @@ class BookModel(db.Model):
     __tablename__ = "books"
 
     isbn = db.Column(db.String(13), primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
     author = db.Column(db.String(80))
-    description = db.Column(db.String(300))
-    img = db.Column(db.String(100))
-    url = db.Column(db.String(100))
+    description = db.Column(db.String(600))
+    img = db.Column(db.String(150))
+    url = db.Column(db.String(150))
 
     def __init__(self, isbn, title, author, description, img, url):
         self.isbn = isbn
