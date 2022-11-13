@@ -132,10 +132,10 @@ class BookreviewList(Resource):
         bookreviews = (
             db.session.query(
                 fbr.c.id,
-                fbr.c.user_id,
-                fbr.c.star,
-                fbr.c.comment,
-                fbr.c.updated_at,
+                db.func.max(fbr.c.user_id).label("user_id"),
+                db.func.max(fbr.c.star).label("star"),
+                db.func.max(fbr.c.comment).label("comment"),
+                db.func.max(fbr.c.updated_at).label("updated_at"),
                 db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
                     "like_count"
                 ),
@@ -152,7 +152,7 @@ class BookreviewList(Resource):
             {
                 "id": br.id,
                 "user_id": br.user_id,
-                "star": br.star,
+                "star": int(br.star),
                 "comment": br.comment,
                 "updated_at": br.updated_at.isoformat(),
                 "like_count": int(br.like_count),
@@ -173,10 +173,10 @@ class BookreviewList(Resource):
         agg = (
             db.session.query(
                 fbr.c.id,
-                fbr.c.isbn,
-                fbr.c.star,
-                fbr.c.comment,
-                fbr.c.updated_at,
+                db.func.max(fbr.c.isbn).label("isbn"),
+                db.func.max(fbr.c.star).label("star"),
+                db.func.max(fbr.c.comment).label("comment"),
+                db.func.max(fbr.c.updated_at).label("updated_at"),
                 db.func.sum(db.case((LikeModel.user_id != None, 1), else_=0)).label(
                     "like_count"
                 ),
@@ -211,7 +211,7 @@ class BookreviewList(Resource):
                 "isbn": br.isbn,
                 "title": br.title,
                 "img": br.img,
-                "star": br.star,
+                "star": int(br.star),
                 "comment": br.comment,
                 "updated_at": br.updated_at.isoformat(),
                 "like_count": int(br.like_count),
