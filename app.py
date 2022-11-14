@@ -25,6 +25,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
 
+app.config["JWT_COOKIE_DOMAIN"] = os.getenv("JWT_COOKIE_DOMAIN")
 app.config["JWT_COOKIE_SAMESITE"] = "None"
 app.config["JWT_COOKIE_SECURE"] = True
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
