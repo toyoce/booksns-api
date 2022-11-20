@@ -1,5 +1,6 @@
 ## booksns-api
 Flaskの練習として作成した、本とそのレビューの情報を扱うREST API。
+
 内部で[楽天ブックス書籍検索API](https://webservice.rakuten.co.jp/documentation/books-book-search)を使用している。
 
 Next.jsで作成したフロントエンドから呼び出す想定で作成した。フロントエンド用のリポジトリは[こちら](https://github.com/toyoce/booksns)。
