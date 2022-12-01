@@ -7,17 +7,22 @@ load_dotenv()
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import (JWTManager, create_access_token, get_jwt,
-                                get_jwt_identity, set_access_cookies)
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    set_access_cookies,
+)
 from flask_restful import Api
 
 from blocklist import BLOCKLIST
 from db import db
-from resources.book import (Book, BookList, HighlyRatedBookList,
-                            MostReviewedBookList)
+from resources.book import Book, BookList, HighlyRatedBookList, MostReviewedBookList
 from resources.bookreview import Bookreview, BookreviewList
 from resources.like import LikeList
 from resources.user import UserLogin, UserLogout, UserRegister
+from resources.health import Health
 
 app = Flask(__name__)
 
@@ -25,7 +30,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
 
-app.config["JWT_COOKIE_CSRF_PROTECT"] = os.getenv("JWT_COOKIE_CSRF_PROTECT", "True") != "False"
+app.config["JWT_COOKIE_CSRF_PROTECT"] = (
+    os.getenv("JWT_COOKIE_CSRF_PROTECT", "True") != "False"
+)
 app.config["JWT_COOKIE_DOMAIN"] = os.getenv("JWT_COOKIE_DOMAIN")
 app.config["JWT_COOKIE_SAMESITE"] = "None"
 app.config["JWT_COOKIE_SECURE"] = True
@@ -112,6 +119,7 @@ api.add_resource(LikeList, "/likes")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout")
+api.add_resource(Health, "/health")
 
 db.init_app(app)
 
