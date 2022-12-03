@@ -22,6 +22,7 @@ from resources.book import Book, BookList, HighlyRatedBookList, MostReviewedBook
 from resources.bookreview import Bookreview, BookreviewList
 from resources.like import LikeList
 from resources.user import UserLogin, UserLogout, UserRegister
+from resources.avatar import Avatar
 from resources.health import Health
 
 app = Flask(__name__)
@@ -39,6 +40,8 @@ app.config["JWT_COOKIE_SECURE"] = True
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
 
 api = Api(app)
 CORS(app, origins=os.getenv("ORIGIN_FRONTEND"), supports_credentials=True)
@@ -119,6 +122,7 @@ api.add_resource(LikeList, "/likes")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout")
+api.add_resource(Avatar, "/avatars")
 api.add_resource(Health, "/health")
 
 db.init_app(app)
