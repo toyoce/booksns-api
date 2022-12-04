@@ -3,6 +3,7 @@ from datetime import datetime
 from db import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
+from models.user import UserModel
 from models.book import BookModel
 from models.bookreview import BookreviewModel
 from models.like import LikeModel
@@ -129,7 +130,7 @@ class BookreviewList(Resource):
             .subquery()
         )
 
-        bookreviews = (
+        agg = (
             db.session.query(
                 fbr.c.id,
                 db.func.max(fbr.c.user_id).label("user_id"),
@@ -145,6 +146,21 @@ class BookreviewList(Resource):
             )
             .outerjoin(LikeModel, fbr.c.id == LikeModel.bookreview_id)
             .group_by(fbr.c.id)
+            .subquery()
+        )
+
+        bookreviews = (
+            db.session.query(
+                agg.c.id,
+                agg.c.user_id,
+                UserModel.avatar,
+                agg.c.star,
+                agg.c.comment,
+                agg.c.updated_at,
+                agg.c.like_count,
+                agg.c.my_like,
+            )
+            .join(UserModel, agg.c.user_id == UserModel.user_id)
             .all()
         )
 
@@ -152,6 +168,7 @@ class BookreviewList(Resource):
             {
                 "id": br.id,
                 "user_id": br.user_id,
+                "avatar": br.avatar,
                 "star": int(br.star),
                 "comment": br.comment,
                 "updated_at": br.updated_at.isoformat(),

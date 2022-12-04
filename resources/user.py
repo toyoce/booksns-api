@@ -1,13 +1,33 @@
 from blocklist import BLOCKLIST
 from db import db
 from flask import jsonify
-from flask_jwt_extended import (create_access_token, get_jwt, jwt_required,
-                                set_access_cookies, unset_jwt_cookies)
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt,
+    jwt_required,
+    set_access_cookies,
+    unset_jwt_cookies,
+)
 from flask_restful import Resource, reqparse
 from models.book import BookModel
 from models.bookreview import BookreviewModel
 from models.user import UserModel
 from werkzeug.security import check_password_hash, generate_password_hash
+
+
+class User(Resource):
+    def get(self, user_id):
+        user = UserModel.find_by_user_id(user_id)
+
+        if user:
+            user = {
+                "user_id": user.user_id,
+                "avatar": user.avatar,
+            }
+
+            return user, 200
+
+        return {"message": "User not found"}, 404
 
 
 class UserRegister(Resource):
