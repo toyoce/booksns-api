@@ -6,6 +6,7 @@ class UserModel(db.Model):
 
     user_id = db.Column(db.String(20), primary_key=True)
     password = db.Column(db.String(102), nullable=False)
+    avatar = db.Column(db.String(50))
 
     def __init__(self, user_id, password):
         self.user_id = user_id
